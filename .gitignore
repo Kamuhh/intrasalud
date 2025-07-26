@@ -1,0 +1,17 @@
+wp-config.php
+wp-content/uploads/
+wp-content/cache/
+wp-content/upgrade/
+wp-content/ai1wm-backups/
+node_modules/
+vendor/
+.env
+*.log
+*.zip
+*.sql
+.DS_Store
+wp-content/plugins/*
+!wp-content/plugins/kivicare-pro/
+!wp-content/plugins/kivicare-addon/
+wp-content/themes/*
+!wp-content/themes/tu-tema-si-lo-modificas/
