@@ -983,7 +983,7 @@ class KCPatientEncounterController extends KCBase
         global $wpdb;
 
         $request_data = $this->request->getInputs();
-        $encounter_id = isset($request_data['id']) ? (int) $request_data['id'] : 0;
+        $encounter_id = $encounter_id = isset($request_data['encounter_id']) ? (int)$request_data['encounter_id'] : 0;
         $output_type = isset($request_data['type']) ? sanitize_text_field($request_data['type']) : 'html';
 
         // Verificar permisos del usuario para este encuentro
