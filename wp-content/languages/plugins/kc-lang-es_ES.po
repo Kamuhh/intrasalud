@@ -2393,11 +2393,11 @@ msgstr "El mismo problema ya existe"
 
 #: app/controllers/KCPatientMedicalHistoryController.php:135
 msgid "Same observations already exists"
-msgstr "Las mismas observaciones ya existen"
+msgstr "Las mismas ordenes clínicas ya existen"
 
 #: app/controllers/KCPatientMedicalHistoryController.php:137
 msgid "Same notes already exists"
-msgstr "Las mismas notas ya existen"
+msgstr "Las mismas Indicaciones ya existen"
 
 #: app/controllers/KCPatientMedicalHistoryController.php:161
 msgid "Medical history saved successfully"
@@ -2409,11 +2409,11 @@ msgstr "Diagnóstico eliminados correctamente"
 
 #: app/controllers/KCPatientMedicalHistoryController.php:195
 msgid "Observations deleted successfully"
-msgstr "Observaciones eliminadas correctamente"
+msgstr "Ordenes clínicas eliminadas correctamente"
 
 #: app/controllers/KCPatientMedicalHistoryController.php:197
 msgid "Notes deleted successfully"
-msgstr "Notas eliminadas correctamente"
+msgstr "Indicaciones eliminadas correctamente"
 
 #: app/controllers/KCPatientMedicalHistoryController.php:206
 msgid "Failed to delete Medical history."
@@ -3121,7 +3121,7 @@ msgstr "No se encontraron citas"
 
 #: resources/assets/lang/temp.php:115
 msgid "Cancel"
-msgstr "Cancelar"
+msgstr "Cerrar"
 
 #: resources/assets/lang/temp.php:116
 msgid "Clear"
@@ -4105,7 +4105,7 @@ msgid "No Data Found"
 msgstr "No se encontraron datos"
 
 msgid "NOTES"
-msgstr "NOTAS"
+msgstr "Indicaciones"
 
 msgid ""
 "Please connect with your Google Account to get appointments in Google "
@@ -5364,7 +5364,7 @@ msgstr "Ingrese título"
 
 #: resources/assets/lang/temp.php:874
 msgid "Enter notes"
-msgstr "Ingrese notas"
+msgstr "Ingrese Indicaciones"
 
 #: resources/assets/lang/temp.php:875
 msgid "Check Out or Check In Clinic"
@@ -6378,7 +6378,7 @@ msgstr "Registro ya disponible"
 
 #: resources/assets/lang/temp.php:1260
 msgid "Print Encounter"
-msgstr "Imprimir consulta"
+msgstr "Resumen de atención"
 
 #: resources/assets/lang/temp.php:1263
 msgid "Template Name"
@@ -6722,7 +6722,7 @@ msgstr "El total general es obligatorio"
 
 #: resources/assets/lang/temp.php:1389
 msgid "Print bill"
-msgstr "Imprimir factura"
+msgstr "PDF"
 
 #: resources/assets/lang/temp.php:1390
 msgid "Billing records"
@@ -6805,7 +6805,7 @@ msgstr "Ítems"
 #: resources/assets/lang/temp.php:1409 resources/assets/lang/temp.php:1587
 #: utils/kc_helpers.php:6467
 msgid "Notes"
-msgstr "Notas"
+msgstr "Indicaciones"
 
 #: resources/assets/lang/temp.php:1410
 msgid ""
@@ -7362,7 +7362,7 @@ msgstr "Diagnóstico(s)"
 
 #: resources/assets/lang/temp.php:1586 utils/kc_helpers.php:6462
 msgid "Observations"
-msgstr "Observaciones"
+msgstr "Ordenes Clínicas"
 
 #: resources/assets/lang/temp.php:1589
 msgid "Add Prescription"
@@ -7530,7 +7530,7 @@ msgstr "diagnósticos clínicos"
 
 #: resources/assets/lang/temp.php:1673
 msgid "clinical observations"
-msgstr "observaciones clínicas"
+msgstr "Ordenes clínicas"
 
 #: resources/assets/lang/temp.php:1674
 msgid "specialization"
