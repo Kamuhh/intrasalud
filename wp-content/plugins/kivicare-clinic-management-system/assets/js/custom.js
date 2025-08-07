@@ -307,3 +307,14 @@ function kivicareCustomImageUploader(formTranslation,type='',multiple=false,extr
 
     return  wp_media_instance;
 }
+
+
+function kc_ajax_get(action, id) {
+  return jQuery.get(
+    ajaxData.ajaxurl,
+    { action: action, id: id },
+    function (response) {
+      console.log(response);
+    }
+  );
+}
