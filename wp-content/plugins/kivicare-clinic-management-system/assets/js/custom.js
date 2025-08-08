@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (id) {
       window.kcEncounterId = id;
-      var btn = document.getElementById('kc-encounter-print');
+      var btn = document.querySelector('.resumen-btn');
       if (btn) btn.setAttribute('data-encounter-id', id);
       console.log('[Resumen] kcEncounterId set', id);
       return true;
@@ -380,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function matchResumenButton(el){
     if(!el) return null;
-    const btn = el.closest('#kc-encounter-print');
+    const btn = el.closest('.resumen-btn');
     if (btn) return btn;
     // Fallback por texto
     const maybeBtn = el.closest('button, a, [role="button"]');
@@ -398,6 +398,20 @@ document.addEventListener('DOMContentLoaded', function () {
     id = idFromHash();
     if (id) return id;
     return null;
+  }
+
+  function ensureResumenContainer() {
+    if (!document.getElementById('encounter-summary-wrap')) {
+      jQuery('body').append(
+        '<div id="encounter-summary-wrap" style="display:none;">' +
+          '<div id="encounter-summary-content" style="padding:16px;"></div>' +
+          '<div class="tb-actions" style="margin-top:12px;display:flex;gap:8px;">' +
+            '<button type="button" class="button button-primary" id="encounter-summary-email">Correo electrónico</button>' +
+            '<button type="button" class="button" id="encounter-summary-pdf">PDF</button>' +
+          '</div>' +
+        '</div>'
+      );
+    }
   }
 
   document.addEventListener('click', function(e){
@@ -422,57 +436,42 @@ document.addEventListener('DOMContentLoaded', function () {
       route_name: 'patient_encounter_summary',
       encounter_id: encounterId,
       type: 'html',
-      _ajax_nonce: request_data.get_nonce
+      _ajax_nonce: request_data.get_nonce || request_data._ajax_nonce
     }).done(function(res){
       try { if (typeof res === 'string') res = JSON.parse(res); } catch(err){ console.error('[Resumen] Invalid response', res); return; }
       if (!res || !res.status) { console.error('[Resumen] Error', res); return; }
 
-      let $modal = jQuery('#encounter-summary-modal');
-      if (!$modal.length) {
-        $modal = jQuery('<div id="encounter-summary-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">\
-<div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">\
-<div class="modal-header"><h5 class="modal-title">Resumen de atención</h5>\
-<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>\
-<div class="modal-body" id="encounter-summary-content"></div>\
-<div class="modal-footer">\
-<button type="button" class="btn btn-primary" id="encounter-summary-email">Correo electrónico</button>\
-<button type="button" class="btn btn-primary" id="encounter-summary-pdf">PDF</button>\
-<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>\
-</div></div></div></div>');
-        jQuery('body').append($modal);
-      }
-
+      ensureResumenContainer();
       jQuery('#encounter-summary-content').html(res.data);
-      const modal = new bootstrap.Modal($modal[0]); modal.show();
 
-      jQuery('#encounter-summary-email').off('click').on('click', function(){
+      tb_show('Resumen de atención', '#TB_inline?inlineId=encounter-summary-wrap&width=800&height=600');
+
+      jQuery('#encounter-summary-email').off('click').on('click', function () {
         jQuery.post(request_data.ajaxurl, {
-            action: 'ajax_get',
-            route_name: 'patient_encounter_summary',
-            encounter_id: encounterId,
-            type: 'sendEmail',
-            _ajax_nonce: request_data.get_nonce
-          })
-          .done(function(r){ alert(r.message); })
-          .fail(function(jqXHR){
-            console.error('[Resumen] AJAX error', jqXHR.status, jqXHR.responseText);
-          });
+          action: 'ajax_get',
+          route_name: 'patient_encounter_summary',
+          encounter_id: encounterId,
+          type: 'sendEmail',
+          _ajax_nonce: request_data.get_nonce || request_data._ajax_nonce
+        })
+        .done(function (r) { alert(r.message || 'Correo enviado'); })
+        .fail(function (jq) { console.error('[Resumen] AJAX error', jq.status, jq.responseText); });
       });
-      jQuery('#encounter-summary-pdf').off('click').on('click', function(){
+
+      jQuery('#encounter-summary-pdf').off('click').on('click', function () {
         jQuery.post(request_data.ajaxurl, {
-            action: 'ajax_get',
-            route_name: 'patient_encounter_summary',
-            encounter_id: encounterId,
-            type: 'pdf',
-            _ajax_nonce: request_data.get_nonce
-          })
-          .done(function(r){ if (r.file_url) window.open(r.file_url, '_blank'); })
-          .fail(function(jqXHR){
-            console.error('[Resumen] AJAX error', jqXHR.status, jqXHR.responseText);
-          });
+          action: 'ajax_get',
+          route_name: 'patient_encounter_summary',
+          encounter_id: encounterId,
+          type: 'pdf',
+          _ajax_nonce: request_data.get_nonce || request_data._ajax_nonce
+        })
+        .done(function (r) { if (r.file_url) window.open(r.file_url, '_blank'); })
+        .fail(function (jq) { console.error('[Resumen] AJAX error', jq.status, jq.responseText); });
       });
-    }).fail(function(jqXHR){
-      console.error('[Resumen] AJAX error', jqXHR.status, jqXHR.responseText);
+    }).fail(function(jq){
+      console.error('[Resumen] AJAX error', jq.status, jq.responseText);
+      try { console.log('JSON', JSON.parse(jq.responseText)); } catch(e){}
     });
   }, true);
 
