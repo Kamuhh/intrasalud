@@ -293,7 +293,7 @@ function kivicareCustomImageUploader(formTranslation,type='',multiple=false,extr
     }else if(type === 'custom_field'){
         delete options.library;
         options.library = {
-            type :extraData.mediaType
+             type :extraData.mediaType
         }
     }
 
@@ -345,21 +345,22 @@ jQuery(function ($) {
 
       var $modal = $('#encounter-summary-modal');
       if (!$modal.length) {
-        $modal = $('<div id="encounter-summary-modal" class="modal fade" tabindex="-1" role="dialog">\
-<div class="modal-dialog modal-lg"><div class="modal-content">\
+        $modal = $('<div id="encounter-summary-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">\
+<div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">\
 <div class="modal-header"><h5 class="modal-title">Resumen de atención</h5>\
-<button type="button" class="close" data-dismiss="modal">&times;</button></div>\
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>\
 <div class="modal-body" id="encounter-summary-content"></div>\
 <div class="modal-footer">\
 <button type="button" class="btn btn-primary" id="encounter-summary-email">Correo electrónico</button>\
 <button type="button" class="btn btn-primary" id="encounter-summary-pdf">PDF</button>\
-<button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>\
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>\
 </div></div></div></div>');
         $('body').append($modal);
       }
 
       $('#encounter-summary-content').html(res.data);
-      $modal.modal('show');
+      var bootstrapModal = new bootstrap.Modal($modal[0]);
+      bootstrapModal.show();
 
       $('#encounter-summary-email')
         .off('click')
