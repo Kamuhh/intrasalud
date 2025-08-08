@@ -319,6 +319,17 @@ function kc_ajax_get(action, id) {
     );
 }
 
+// helper: extrae ID del hash (#/patient-encounter/dashboard/17?...)
+function idFromHash() {
+  const h = String(location.hash || "");
+  // captura 17 tanto en /patient-encounter/17 como en /patient-encounter/dashboard/17
+  let m =
+    h.match(/patient-encounter\/(?:dashboard\/)?(\d+)/) ||
+    h.match(/patient-encounter\/(\d+)/) ||
+    h.match(/\/(\d+)(?:[/?]|$)/); // súper fallback: último número en la ruta
+  return m ? m[1] : null;
+}
+
 // Expose encounter_id in admin so custom.js can read it
 document.addEventListener('DOMContentLoaded', function () {
   function attachEncounterId() {
@@ -340,12 +351,13 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
 
+    if (!id) id = idFromHash();
+
     if (id) {
       window.kcEncounterId = id;
       var btn = document.getElementById('kc-encounter-print');
-      if (btn) {
-        btn.setAttribute('data-encounter-id', id);
-      }
+      if (btn) btn.setAttribute('data-encounter-id', id);
+      console.log('[Resumen] kcEncounterId set', id);
       return true;
     }
     return false;
@@ -380,11 +392,11 @@ document.addEventListener('DOMContentLoaded', function () {
     let id = btn && btn.getAttribute('data-encounter-id');
     if (id) return id;
     if (window.kcEncounterId) return window.kcEncounterId;
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(location.search || '');
     id = params.get('encounter_id') || params.get('id');
     if (id) return id;
-    const hashMatch = (location.hash || '').match(/patient-encounter\/(\d+)/);
-    if (hashMatch) return hashMatch[1];
+    id = idFromHash();
+    if (id) return id;
     return null;
   }
 
