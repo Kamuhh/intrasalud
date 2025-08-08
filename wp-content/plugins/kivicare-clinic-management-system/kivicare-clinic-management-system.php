@@ -65,3 +65,8 @@ register_deactivation_hook( __FILE__, [KCDeactivate::class, 'deActivate'] );
 ( new KCDeactivate() );
 
 do_action('kivicare_activate_init');
+
+add_action('admin_enqueue_scripts', function () {
+    wp_enqueue_script('thickbox');
+    wp_enqueue_style('thickbox');
+});
