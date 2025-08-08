@@ -321,41 +321,49 @@ function kc_ajax_get(action, id) {
 
 // Open encounter summary modal with options to email or download PDF
 jQuery(function ($) {
-  $(document).on('click', '.resumen-btn', function (e) {
-    e.preventDefault();
-    e.stopPropagation();
+  // Use a capturing listener to intercept the existing print button
+  document.addEventListener(
+    'click',
+    function (e) {
+      var btn = e.target.closest('#kc-encounter-print');
+      if (!btn) {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
 
-    var encounterId = $(this).data('encounter-id');
-    if (!encounterId) {
-      var params = new URLSearchParams(window.location.search);
-      encounterId = params.get('encounter_id') || params.get('id');
-    }
-    if (!encounterId) {
-      return;
-    }
+      var encounterId = btn.getAttribute('data-encounter-id');
+      if (!encounterId) {
+        var params = new URLSearchParams(window.location.search);
+        encounterId = params.get('encounter_id') || params.get('id');
+      }
+      if (!encounterId) {
+        return;
+      }
 
-    $.get(request_data.ajaxurl, {
-      action: 'patient_encounter_summary',
-      encounter_id: encounterId,
-      type: 'html'
-    }).done(function (res) {
-      console.log('encounter summary response:', res);
-      try {
-        if (typeof res === 'string') {
-          res = JSON.parse(res);
+      $.get(request_data.ajaxurl, {
+        action: 'patient_encounter_summary',
+        encounter_id: encounterId,
+        type: 'html'
+      }).done(function (res) {
+        console.log('encounter summary response:', res);
+        try {
+          if (typeof res === 'string') {
+            res = JSON.parse(res);
+          }
+        } catch (e) {
+          console.error('Invalid encounter summary response', res);
+          return;
         }
-      } catch (e) {
-        console.error('Invalid encounter summary response', res);
-        return;
-      }
-      if (!res || !res.status) {
-        console.error('Encounter summary error:', res);
-        return;
-      }
+        if (!res || !res.status) {
+          console.error('Encounter summary error:', res);
+          return;
+        }
 
-      var $modal = $('#encounter-summary-modal');
-      if (!$modal.length) {
-        $modal = $('<div id="encounter-summary-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">\
+        var $modal = $('#encounter-summary-modal');
+        if (!$modal.length) {
+          $modal = $('<div id="encounter-summary-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">\
 <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">\
 <div class="modal-header"><h5 class="modal-title">Resumen de atención</h5>\
 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>\
@@ -365,38 +373,40 @@ jQuery(function ($) {
 <button type="button" class="btn btn-primary" id="encounter-summary-pdf">PDF</button>\
 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>\
 </div></div></div></div>');
-        $('body').append($modal);
-      }
+          $('body').append($modal);
+        }
 
-      $('#encounter-summary-content').html(res.data);
-      var bootstrapModal = new bootstrap.Modal($modal[0]);
-      bootstrapModal.show();
+        $('#encounter-summary-content').html(res.data);
+        var bootstrapModal = new bootstrap.Modal($modal[0]);
+        bootstrapModal.show();
 
-      $('#encounter-summary-email')
-        .off('click')
-        .on('click', function () {
-          $.get(request_data.ajaxurl, {
-            action: 'patient_encounter_summary',
-            encounter_id: encounterId,
-            type: 'sendEmail'
-          }).done(function (resp) {
-            alert(resp.message);
+        $('#encounter-summary-email')
+          .off('click')
+          .on('click', function () {
+            $.get(request_data.ajaxurl, {
+              action: 'patient_encounter_summary',
+              encounter_id: encounterId,
+              type: 'sendEmail'
+            }).done(function (resp) {
+              alert(resp.message);
+            });
           });
-        });
 
-      $('#encounter-summary-pdf')
-        .off('click')
-        .on('click', function () {
-          $.get(request_data.ajaxurl, {
-            action: 'patient_encounter_summary',
-            encounter_id: encounterId,
-            type: 'pdf'
-          }).done(function (resp) {
-            if (resp.file_url) {
-              window.open(resp.file_url, '_blank');
-            }
+        $('#encounter-summary-pdf')
+          .off('click')
+          .on('click', function () {
+            $.get(request_data.ajaxurl, {
+              action: 'patient_encounter_summary',
+              encounter_id: encounterId,
+              type: 'pdf'
+            }).done(function (resp) {
+              if (resp.file_url) {
+                window.open(resp.file_url, '_blank');
+              }
+            });
           });
-        });
-    });
-  });
+      });
+    },
+    true
+  );
 });
