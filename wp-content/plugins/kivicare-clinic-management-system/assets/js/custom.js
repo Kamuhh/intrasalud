@@ -319,72 +319,38 @@ function kc_ajax_get(action, id) {
     );
 }
 
-// helper: extrae ID del hash (#/patient-encounter/dashboard/17?...)
-function idFromHash() {
-  const h = String(location.hash || "");
-  // captura 17 tanto en /patient-encounter/17 como en /patient-encounter/dashboard/17
-  let m =
-    h.match(/patient-encounter\/(?:dashboard\/)?(\d+)/) ||
-    h.match(/patient-encounter\/(\d+)/) ||
-    h.match(/\/(\d+)(?:[/?]|$)/); // súper fallback: último número en la ruta
-  return m ? m[1] : null;
-}
+if (!window.__kcResumenInit) {
+  window.__kcResumenInit = true;
 
-// Expose encounter_id in admin so custom.js can read it
-document.addEventListener('DOMContentLoaded', function () {
-  function attachEncounterId() {
-    var id = null;
-    if (window.KCApp) {
-      if (
-        window.KCApp.$store &&
-        window.KCApp.$store.state &&
-        window.KCApp.$store.state.encounter &&
-        window.KCApp.$store.state.encounter.id
-      ) {
-        id = window.KCApp.$store.state.encounter.id;
-      } else if (
-        window.KCApp.$route &&
-        window.KCApp.$route.params &&
-        window.KCApp.$route.params.id
-      ) {
-        id = window.KCApp.$route.params.id;
-      }
+  function openResumenModal() {
+    if (typeof tb_show === 'function') {
+      tb_show('Resumen de atención', '#TB_inline?inlineId=encounter-summary-wrap&width=800&height=600');
+    } else {
+      alert('No se pudo abrir el modal.');
     }
-
-    if (!id) id = idFromHash();
-
-    if (id) {
-      window.kcEncounterId = id;
-      var btn = document.querySelector('.resumen-btn');
-      if (btn) btn.setAttribute('data-encounter-id', id);
-      console.log('[Resumen] kcEncounterId set', id);
-      return true;
-    }
-    return false;
   }
 
-  if (!attachEncounterId()) {
-    var tries = 0;
-    var timer = setInterval(function () {
-      tries++;
-      if (attachEncounterId() || tries > 20) {
-        clearInterval(timer);
-      }
-    }, 500);
+  // helper: extrae ID del hash (#/patient-encounter/dashboard/17?...)
+  function idFromHash() {
+    const h = String(location.hash || "");
+    // captura 17 tanto en /patient-encounter/17 como en /patient-encounter/dashboard/17
+    let m =
+      h.match(/patient-encounter\/(?:dashboard\/)?(\d+)/) ||
+      h.match(/patient-encounter\/(\d+)/) ||
+      h.match(/\/(\d+)(?:[/?]|$)/); // súper fallback: último número en la ruta
+    return m ? m[1] : null;
   }
-});
 
-// ENGANCHE BACKEND - Resumen de atención
-(function() {
   function normalize(t){ return (t||'').trim().toLowerCase().replace(/\s+/g,' '); }
 
   function matchResumenButton(el){
-    if(!el) return null;
-    const btn = el.closest('.resumen-btn');
-    if (btn) return btn;
-    // Fallback por texto
-    const maybeBtn = el.closest('button, a, [role="button"]');
-    if (maybeBtn && normalize(maybeBtn.textContent) === 'resumen de atención') return maybeBtn;
+    if (!el) return null;
+    const byId = el.closest('#kc-encounter-print');
+    if (byId) return byId;
+    const byClass = el.closest('.resumen-btn');
+    if (byClass) return byClass;
+    const maybe = el.closest('button, a, [role="button"]');
+    if (maybe && normalize(maybe.textContent) === 'resumen de atención') return maybe;
     return null;
   }
 
@@ -413,6 +379,52 @@ document.addEventListener('DOMContentLoaded', function () {
       );
     }
   }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    function attachEncounterId() {
+      var id = null;
+      if (window.KCApp) {
+        if (
+          window.KCApp.$store &&
+          window.KCApp.$store.state &&
+          window.KCApp.$store.state.encounter &&
+          window.KCApp.$store.state.encounter.id
+        ) {
+          id = window.KCApp.$store.state.encounter.id;
+        } else if (
+          window.KCApp.$route &&
+          window.KCApp.$route.params &&
+          window.KCApp.$route.params.id
+        ) {
+          id = window.KCApp.$route.params.id;
+        }
+      }
+
+      if (!id) id = idFromHash();
+
+      if (id) {
+        window.kcEncounterId = id;
+        var btn = document.getElementById('kc-encounter-print');
+        if (btn) {
+          btn.setAttribute('data-encounter-id', id);
+          btn.classList.add('resumen-btn');
+        }
+        console.log('[Resumen] kcEncounterId set', id);
+        return true;
+      }
+      return false;
+    }
+
+    if (!attachEncounterId()) {
+      var tries = 0;
+      var timer = setInterval(function () {
+        tries++;
+        if (attachEncounterId() || tries > 20) {
+          clearInterval(timer);
+        }
+      }, 500);
+    }
+  });
 
   document.addEventListener('click', function(e){
     const btn = matchResumenButton(e.target);
@@ -444,7 +456,7 @@ document.addEventListener('DOMContentLoaded', function () {
       ensureResumenContainer();
       jQuery('#encounter-summary-content').html(res.data);
 
-      tb_show('Resumen de atención', '#TB_inline?inlineId=encounter-summary-wrap&width=800&height=600');
+      openResumenModal();
 
       jQuery('#encounter-summary-email').off('click').on('click', function () {
         jQuery.post(request_data.ajaxurl, {
@@ -476,4 +488,4 @@ document.addEventListener('DOMContentLoaded', function () {
   }, true);
 
   console.log('[Resumen] handler attached (backend)');
-})();
+}
