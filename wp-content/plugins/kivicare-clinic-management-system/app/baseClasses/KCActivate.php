@@ -397,6 +397,15 @@ class KCActivate extends KCBase {
             $this->dashboardPage();
 		}
 
+add_action('wp_enqueue_scripts', function () {
+    if ( is_page('encounter-list') ) { // Cambia 'lista-de-consultas' si es necesario
+        wp_enqueue_script('kc_custom');
+    }
+}, 20);
+
+
+
+		
 		// Enqueue/register Front-end assets
 		add_action( 'wp_enqueue_scripts', array($this,'enqueueFrontScripts'));
 
