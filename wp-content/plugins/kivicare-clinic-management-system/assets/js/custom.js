@@ -2,25 +2,25 @@
 $ = jQuery;
 
 
-function displayMessage(message,duration = 10000) {
-    window.Snackbar.show({text:escapeHtml(message) , pos: 'top-right', duration: duration, actionText:window.__kivicarelang.common.dismiss});
+function displayMessage(message, duration = 10000) {
+    window.Snackbar.show({ text: escapeHtml(message), pos: 'top-right', duration: duration, actionText: window.__kivicarelang.common.dismiss });
 }
 
-function displayErrorMessage(message,duration = 10000) {
-    window.Snackbar.show({text: escapeHtml(message), pos: 'top-right', backgroundColor : '#f5365c', actionTextColor: '#fff', duration: duration});
+function displayErrorMessage(message, duration = 10000) {
+    window.Snackbar.show({ text: escapeHtml(message), pos: 'top-right', backgroundColor: '#f5365c', actionTextColor: '#fff', duration: duration });
 }
 function escapeHtml(unsafe) {
     return unsafe
-         .replace(/&/g, "&amp;")
-         .replace(/</g, "&lt;")
-         .replace(/>/g, "&gt;")
-         .replace(/"/g, "&quot;")
-         .replace(/'/g, "&#039;");
- }
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
 
 
-function displayAlert (title, message, color = 'red') {
+function displayAlert(title, message, color = 'red') {
     $.alert({
         title: title,
         content: message,
@@ -31,11 +31,11 @@ function displayAlert (title, message, color = 'red') {
 function displayTooltip(object = {}) {
     setTimeout(() => {
         let classElement = object.class !== undefined ? object.class : '.guide';
-        window.Tipped.create(classElement, function(element) {
+        window.Tipped.create(classElement, function (element) {
             return {
                 content: $(element).data('content')
             };
-        },{
+        }, {
             position: object.position !== undefined ? object.position : 'right',
             skin: object.skin !== undefined ? object.skin : 'light',
             size: object.size !== undefined ? object.size : 'large'
@@ -44,15 +44,15 @@ function displayTooltip(object = {}) {
 }
 
 function numberWithCommas(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 window.onload = function () {
     $('.fc-toolbar.fc-header-toolbar').addClass('row col-lg-12');
 };
 
-function kiviOpenPaymentWindow(url){
-   
+function kiviOpenPaymentWindow(url) {
+
     const parsedUrl = new URL(url);
     let hostname = parsedUrl.hostname;
     hostname = hostname.replace(/^www\./, '');
@@ -72,7 +72,7 @@ function kiviOpenPaymentWindow(url){
         console.error('Unauthorized domain:', domainName);
         return null;
     }
-    
+
 }
 
 function kivicare_generate_time(n, a = "delimiters", c = "general") {
@@ -87,7 +87,7 @@ function kivicare_generate_time(n, a = "delimiters", c = "general") {
                 (r = new Date(i[0] + "-" + i[1] + "-" + i[2] + "T" + n.endTime + ":00.000" + n.timeZoneOffset)),
                 (l = l.toISOString().replace(".000", "")),
                 (r = r.toISOString().replace(".000", "")),
-            "clean" == a && ((l = l.replace(/\-/g, "").replace(/\:/g, "")), (r = r.replace(/\-/g, "").replace(/\:/g, "")));
+                "clean" == a && ((l = l.replace(/\-/g, "").replace(/\:/g, "")), (r = r.replace(/\-/g, "").replace(/\:/g, "")));
         else {
             if (((l = new Date(o[0] + "-" + o[1] + "-" + o[2] + "T" + n.startTime + ":00.000+00:00")), (r = new Date(i[0] + "-" + i[1] + "-" + i[2] + "T" + n.endTime + ":00.000+00:00")), null != n.timeZone && "" != n.timeZone)) {
                 let e = new Date(l.toLocaleString("en-US", { timeZone: "UTC" })),
@@ -136,7 +136,7 @@ function kivicare_generate_google(e) {
 }
 
 function kivicare_generate_yahoo(e) {
-    
+
     try {
         let t = "https://calendar.yahoo.com/?v=60";
         var n = kivicare_generate_time(e, "clean");
@@ -161,12 +161,12 @@ function kivicare_generate_yahoo(e) {
     } catch (error) {
         console.error("Error generating Yahoo calendar link:", error);
     }
-    
+
 }
 
 function kivicare_generate_microsoft(e, t = "365") {
-    
-    
+
+
     try {
         let n = "https://";
         n += e.provider === "outlook" ? "outlook.live.com" : "outlook.office.com";
@@ -202,10 +202,10 @@ function kivicare_generate_teams(e) {
     t += "&startTime=" + n.start + "&endTime=" + n.end;
     let a = "";
     null != e.name && "" != e.name && (t += "&subject=" + encodeURIComponent(e.name)),
-    null != e.location && "" != e.location && ((a = encodeURIComponent(e.location)), (t += "&location=" + a), (a += " // ")),
-    null != e.description && "" != e.description && (t += "&content=" + a + encodeURIComponent(e.description)),
+        null != e.location && "" != e.location && ((a = encodeURIComponent(e.location)), (t += "&location=" + a), (a += " // ")),
+        null != e.description && "" != e.description && (t += "&content=" + a + encodeURIComponent(e.description)),
         // window.open(t, "_blank").focus();
-    console.log(t)
+        console.log(t)
 }
 
 function kivicare_generate_ical(t) {
@@ -218,14 +218,14 @@ function kivicare_generate_ical(t) {
     let a = "",
         c = (n.allday && (a = ";VALUE=DATE"), ["BEGIN:VCALENDAR", "VERSION:2.0", "CALSCALE:GREGORIAN", "BEGIN:VEVENT", "DTSTAMP:" + n.start, "DTSTART" + a + ":" + n.start, "DTEND" + a + ":" + n.end, "SUMMARY:" + t.name]);
     null != t.description_iCal && "" != t.description_iCal && c.push("DESCRIPTION:" + t.description_iCal.replace(/\n/g, "\\n")),
-    null != t.location && "" != t.location && c.push("LOCATION:" + t.location),
+        null != t.location && "" != t.location && c.push("LOCATION:" + t.location),
         c.push("STATUS:CONFIRMED", "LAST-MODIFIED:" + e, "SEQUENCE:0", "END:VEVENT", "END:VCALENDAR");
     n = "data:text/calendar;charset=utf-8," + encodeURIComponent(c.join("\r\n"));
     try {
         if (!window.ActiveXObject) {
             let e = document.createElement("a");
             (e.href = n), (e.target = "_blank"), (e.download = t.iCalFileName || "event-to-save-in-my-calendar");
-            var o = new MouseEvent("click", {view: window, bubbles: !0, cancelable: !1});
+            var o = new MouseEvent("click", { view: window, bubbles: !0, cancelable: !1 });
             e.dispatchEvent(o), (window.URL || window.webkitURL).revokeObjectURL(e.href);
         }
     } catch (e) {
@@ -241,111 +241,111 @@ function kivicare_isiOS() {
 
     // Directly check the conditions without using new Function
     return (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) ||
-           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 }
 
-function kivicare_isBrowser(){
-    try { return this===window; }catch(e){ return false; }
+function kivicare_isBrowser() {
+    try { return this === window; } catch (e) { return false; }
 }
 
-function kivicare_add_to_calendar_url(config,type){
-    switch (type){
+function kivicare_add_to_calendar_url(config, type) {
+    switch (type) {
         case 'googleCalender':
             kivicare_generate_google(config);
             break;
         case 'microSoftOutlookLive':
-            kivicare_generate_microsoft(config,'outlook')
+            kivicare_generate_microsoft(config, 'outlook')
             break;
         case 'microSoftOutlookoffice':
             kivicare_generate_microsoft(config)
             break;
         case 'microSoftTeam':
-             kivicare_generate_teams(config)
+            kivicare_generate_teams(config)
             break;
         case 'yahoo':
-             kivicare_generate_yahoo(config);
+            kivicare_generate_yahoo(config);
             break;
         case 'apple':
             kivicare_generate_ical(config)
             break;
     }
 }
-function kivicareCustomImageUploader(formTranslation,type='',multiple=false,extraData={}){
+function kivicareCustomImageUploader(formTranslation, type = '', multiple = false, extraData = {}) {
     let options = {
-        title : ['report','csv','xls','json','custom_field'].includes(type) ?  formTranslation.common.choose_file : formTranslation.common.choose_image,
-        button : {
-            text: ['report','csv','xls','json','custom_field'].includes(type) ?  formTranslation.common.choose_file : formTranslation.common.choose_image
+        title: ['report', 'csv', 'xls', 'json', 'custom_field'].includes(type) ? formTranslation.common.choose_file : formTranslation.common.choose_image,
+        button: {
+            text: ['report', 'csv', 'xls', 'json', 'custom_field'].includes(type) ? formTranslation.common.choose_file : formTranslation.common.choose_image
         },
-        library : {
-            type: [ 'image' ]
+        library: {
+            type: ['image']
         },
         multiple: multiple
     }
 
-    if(type === 'report'){
+    if (type === 'report') {
         options.library.type = Object.values(kc_custom_request_data.support_mime_type);
-    }else if (type === 'csv'){
+    } else if (type === 'csv') {
         options.library.type = ['text/csv']
-    }else if (type === 'xls'){
-        options.library.type = ['application/vnd.oasis.opendocument.spreadsheet','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.ms-excel.sheet.macroEnabled.12','application/vnd.ms-excel.sheet.binary.macroEnabled.12']
-    }else if (type === 'json'){
+    } else if (type === 'xls') {
+        options.library.type = ['application/vnd.oasis.opendocument.spreadsheet', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel.sheet.macroEnabled.12', 'application/vnd.ms-excel.sheet.binary.macroEnabled.12']
+    } else if (type === 'json') {
         options.library.type = ['application/json']
-    }else if(type === 'custom_field'){
+    } else if (type === 'custom_field') {
         delete options.library;
         options.library = {
-             type :extraData.mediaType
+            type: extraData.mediaType
         }
     }
 
     const wp_media_instance = wp.media.frames.file_frame = wp.media(options);
 
-    if(options.library && options.library.type && options.library.type.length > 0){
-        wp_media_instance.on('uploader:ready',function (){
-            jQuery( '.moxie-shim-html5 input[type="file"]' ).attr('accept',options.library.type.join(','))
+    if (options.library && options.library.type && options.library.type.length > 0) {
+        wp_media_instance.on('uploader:ready', function () {
+            jQuery('.moxie-shim-html5 input[type="file"]').attr('accept', options.library.type.join(','))
         });
     }
 
-    return  wp_media_instance;
+    return wp_media_instance;
 }
 
 
 function kc_ajax_get(action, id) {
-  return jQuery.get(
-    ajaxData.ajaxurl,
-    { action: action, id: id },
-    function (response) {
-      console.log(response);
-    }
-  );
+    return jQuery.get(
+        ajaxData.ajaxurl,
+        { action: action, id: id },
+        function (response) {
+            console.log(response);
+        }
+    );
 }
 
 // Open encounter summary modal with options to email or download PDF
 jQuery(function ($) {
-  $(document).on('click', '#kc-encounter-print', function (e) {
-    e.preventDefault();
-    e.stopPropagation();
+    $(document).on('click', '#kc-encounter-print', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
 
-    var encounterId = $(this).data('encounter-id');
-    if (!encounterId) {
-      var params = new URLSearchParams(window.location.search);
-      encounterId = params.get('encounter_id') || params.get('id');
-    }
-    if (!encounterId) {
-      return;
-    }
+        var encounterId = $(this).data('encounter-id');
+        if (!encounterId) {
+            var params = new URLSearchParams(window.location.search);
+            encounterId = params.get('encounter_id') || params.get('id');
+        }
+        if (!encounterId) {
+            return;
+        }
 
-    $.get(request_data.ajaxurl, {
-      action: 'patient_encounter_summary',
-      encounter_id: encounterId,
-      type: 'html'
-    }).done(function (res) {
-      if (!res.status) {
-        return;
-      }
+        $.get(request_data.ajaxurl, {
+            action: 'patient_encounter_summary',
+            encounter_id: encounterId,
+            type: 'html'
+        }).done(function (res) {
+            if (!res.status) {
+                return;
+            }
 
-      var $modal = $('#encounter-summary-modal');
-      if (!$modal.length) {
-        $modal = $('<div id="encounter-summary-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">\
+            var $modal = $('#encounter-summary-modal');
+            if (!$modal.length) {
+                $modal = $('<div id="encounter-summary-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">\
 <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">\
 <div class="modal-header"><h5 class="modal-title">Resumen de atención</h5>\
 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>\
@@ -355,38 +355,38 @@ jQuery(function ($) {
 <button type="button" class="btn btn-primary" id="encounter-summary-pdf">PDF</button>\
 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>\
 </div></div></div></div>');
-        $('body').append($modal);
-      }
-
-      $('#encounter-summary-content').html(res.data);
-      var bootstrapModal = new bootstrap.Modal($modal[0]);
-      bootstrapModal.show();
-
-      $('#encounter-summary-email')
-        .off('click')
-        .on('click', function () {
-          $.get(request_data.ajaxurl, {
-            action: 'patient_encounter_summary',
-            encounter_id: encounterId,
-            type: 'sendEmail'
-          }).done(function (resp) {
-            alert(resp.message);
-          });
-        });
-
-      $('#encounter-summary-pdf')
-        .off('click')
-        .on('click', function () {
-          $.get(request_data.ajaxurl, {
-            action: 'patient_encounter_summary',
-            encounter_id: encounterId,
-            type: 'pdf'
-          }).done(function (resp) {
-            if (resp.file_url) {
-              window.open(resp.file_url, '_blank');
+                $('body').append($modal);
             }
-          });
+
+            $('#encounter-summary-content').html(res.data);
+            var bootstrapModal = new bootstrap.Modal($modal[0]);
+            bootstrapModal.show();
+
+            $('#encounter-summary-email')
+                .off('click')
+                .on('click', function () {
+                    $.get(request_data.ajaxurl, {
+                        action: 'patient_encounter_summary',
+                        encounter_id: encounterId,
+                        type: 'sendEmail'
+                    }).done(function (resp) {
+                        alert(resp.message);
+                    });
+                });
+
+            $('#encounter-summary-pdf')
+                .off('click')
+                .on('click', function () {
+                    $.get(request_data.ajaxurl, {
+                        action: 'patient_encounter_summary',
+                        encounter_id: encounterId,
+                        type: 'pdf'
+                    }).done(function (resp) {
+                        if (resp.file_url) {
+                            window.open(resp.file_url, '_blank');
+                        }
+                    });
+                });
         });
     });
-  });
 });
