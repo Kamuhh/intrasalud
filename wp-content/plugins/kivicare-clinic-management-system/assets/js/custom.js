@@ -417,10 +417,12 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    jQuery.get(request_data.ajaxurl, {
-      action: 'patient_encounter_summary',
+    jQuery.post(request_data.ajaxurl, {
+      action: 'ajax_get',
+      route_name: 'patient_encounter_summary',
       encounter_id: encounterId,
-      type: 'html'
+      type: 'html',
+      _ajax_nonce: request_data.get_nonce
     }).done(function(res){
       try { if (typeof res === 'string') res = JSON.parse(res); } catch(err){ console.error('[Resumen] Invalid response', res); return; }
       if (!res || !res.status) { console.error('[Resumen] Error', res); return; }
@@ -444,13 +446,33 @@ document.addEventListener('DOMContentLoaded', function () {
       const modal = new bootstrap.Modal($modal[0]); modal.show();
 
       jQuery('#encounter-summary-email').off('click').on('click', function(){
-        jQuery.get(request_data.ajaxurl, { action:'patient_encounter_summary', encounter_id: encounterId, type:'sendEmail' })
-          .done(function(r){ alert(r.message); });
+        jQuery.post(request_data.ajaxurl, {
+            action: 'ajax_get',
+            route_name: 'patient_encounter_summary',
+            encounter_id: encounterId,
+            type: 'sendEmail',
+            _ajax_nonce: request_data.get_nonce
+          })
+          .done(function(r){ alert(r.message); })
+          .fail(function(jqXHR){
+            console.error('[Resumen] AJAX error', jqXHR.status, jqXHR.responseText);
+          });
       });
       jQuery('#encounter-summary-pdf').off('click').on('click', function(){
-        jQuery.get(request_data.ajaxurl, { action:'patient_encounter_summary', encounter_id: encounterId, type:'pdf' })
-          .done(function(r){ if (r.file_url) window.open(r.file_url, '_blank'); });
+        jQuery.post(request_data.ajaxurl, {
+            action: 'ajax_get',
+            route_name: 'patient_encounter_summary',
+            encounter_id: encounterId,
+            type: 'pdf',
+            _ajax_nonce: request_data.get_nonce
+          })
+          .done(function(r){ if (r.file_url) window.open(r.file_url, '_blank'); })
+          .fail(function(jqXHR){
+            console.error('[Resumen] AJAX error', jqXHR.status, jqXHR.responseText);
+          });
       });
+    }).fail(function(jqXHR){
+      console.error('[Resumen] AJAX error', jqXHR.status, jqXHR.responseText);
     });
   }, true);
 
