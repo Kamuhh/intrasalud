@@ -319,6 +319,49 @@ function kc_ajax_get(action, id) {
     );
 }
 
+// Expose encounter_id in admin so custom.js can read it
+document.addEventListener('DOMContentLoaded', function () {
+  function attachEncounterId() {
+    var id = null;
+    if (window.KCApp) {
+      if (
+        window.KCApp.$store &&
+        window.KCApp.$store.state &&
+        window.KCApp.$store.state.encounter &&
+        window.KCApp.$store.state.encounter.id
+      ) {
+        id = window.KCApp.$store.state.encounter.id;
+      } else if (
+        window.KCApp.$route &&
+        window.KCApp.$route.params &&
+        window.KCApp.$route.params.id
+      ) {
+        id = window.KCApp.$route.params.id;
+      }
+    }
+
+    if (id) {
+      window.kcEncounterId = id;
+      var btn = document.getElementById('kc-encounter-print');
+      if (btn) {
+        btn.setAttribute('data-encounter-id', id);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  if (!attachEncounterId()) {
+    var tries = 0;
+    var timer = setInterval(function () {
+      tries++;
+      if (attachEncounterId() || tries > 20) {
+        clearInterval(timer);
+      }
+    }, 500);
+  }
+});
+
 // ENGANCHE BACKEND - Resumen de atención
 (function() {
   function normalize(t){ return (t||'').trim().toLowerCase().replace(/\s+/g,' '); }
@@ -333,6 +376,18 @@ function kc_ajax_get(action, id) {
     return null;
   }
 
+  function resolveEncounterId(btn){
+    let id = btn && btn.getAttribute('data-encounter-id');
+    if (id) return id;
+    if (window.kcEncounterId) return window.kcEncounterId;
+    const params = new URLSearchParams(window.location.search);
+    id = params.get('encounter_id') || params.get('id');
+    if (id) return id;
+    const hashMatch = (location.hash || '').match(/patient-encounter\/(\d+)/);
+    if (hashMatch) return hashMatch[1];
+    return null;
+  }
+
   document.addEventListener('click', function(e){
     const btn = matchResumenButton(e.target);
     if (!btn) return;
@@ -344,11 +399,7 @@ function kc_ajax_get(action, id) {
     console.log('[Resumen] click intercepted', btn);
     btn.style.outline = '2px solid #28a745'; setTimeout(()=>btn.style.outline='', 1000);
 
-    let encounterId = btn.getAttribute('data-encounter-id');
-    if (!encounterId) {
-      const params = new URLSearchParams(window.location.search);
-      encounterId = params.get('encounter_id') || params.get('id');
-    }
+    let encounterId = resolveEncounterId(btn);
     if (!encounterId) {
       console.warn('[Resumen] No encounter_id');
       return;
