@@ -339,7 +339,17 @@ jQuery(function ($) {
       encounter_id: encounterId,
       type: 'html'
     }).done(function (res) {
-      if (!res.status) {
+      console.log('encounter summary response:', res);
+      try {
+        if (typeof res === 'string') {
+          res = JSON.parse(res);
+        }
+      } catch (e) {
+        console.error('Invalid encounter summary response', res);
+        return;
+      }
+      if (!res || !res.status) {
+        console.error('Encounter summary error:', res);
         return;
       }
 
