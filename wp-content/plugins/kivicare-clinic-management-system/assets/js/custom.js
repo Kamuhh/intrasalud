@@ -380,7 +380,13 @@ if (!window.__kcResumenInit) {
     }
   }
 
+  function isEncounterScreen() {
+    return document.getElementById('kc-encounter-print') !== null ||
+           /patient-encounter/.test(String(location.hash || ''));
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
+    if (!isEncounterScreen()) return;
     function attachEncounterId() {
       var id = null;
       if (window.KCApp) {
@@ -427,6 +433,7 @@ if (!window.__kcResumenInit) {
   });
 
   document.addEventListener('click', function(e){
+    if (!isEncounterScreen()) return;
     const btn = matchResumenButton(e.target);
     if (!btn) return;
 
