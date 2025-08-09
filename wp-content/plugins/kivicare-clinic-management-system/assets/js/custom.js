@@ -293,28 +293,156 @@ function kivicareCustomImageUploader(formTranslation, type = '', multiple = fals
     } else if (type === 'custom_field') {
         delete options.library;
         options.library = {
-            type: extraData.mediaType
+            type :extraData.mediaType
         }
     }
 
     const wp_media_instance = wp.media.frames.file_frame = wp.media(options);
 
-    if (options.library && options.library.type && options.library.type.length > 0) {
-        wp_media_instance.on('uploader:ready', function () {
-            jQuery('.moxie-shim-html5 input[type="file"]').attr('accept', options.library.type.join(','))
+    if(options.library && options.library.type && options.library.type.length > 0){
+        wp_media_instance.on('uploader:ready',function (){
+            jQuery( '.moxie-shim-html5 input[type="file"]' ).attr('accept',options.library.type.join(','))
         });
     }
 
-    return wp_media_instance;
+    return  wp_media_instance;
 }
 
 
 function kc_ajax_get(action, id) {
-    return jQuery.get(
-        ajaxData.ajaxurl,
-        { action: action, id: id },
-        function (response) {
-            console.log(response);
-        }
-    );
+  return jQuery.get(
+    ajaxData.ajaxurl,
+    { action: action, id: id },
+    function (response) {
+      console.log(response);
+    }
+  );
 }
+/* kc_dashboard_extras: parche no intrusivo para SPA (imgs rotas + ocultar 2 ítems) */
+(function () {
+  const once = (fn) => { let done=false; return function(){ if(!done){ done=true; try{ fn.apply(this, arguments);}catch(e){} } }; };
+  const nbase = (u)=>{ if(!u) return ''; return u.endsWith('/')?u:(u+'/'); };
+
+  // Bases seguras: vienen de PHP (ver sección C). Fallbacks defensivos.
+  const ADMIN  = nbase(window.kc_admin_url || (window.ajaxurl ? window.ajaxurl.replace('admin-ajax.php','') : '/wp-admin/'));
+  const ASSETS = nbase(window.kc_assets_url || (window.kc_plugin_url ? (window.kc_plugin_url + 'assets/') : ''));
+  const BAD_NEEDLE = '/wp-admin/undefinedassets/';
+
+  // Reparar <img> que el bundle armó con base 'undefined'
+  function fixBrokenImgSrc() {
+    document.querySelectorAll('img[src]').forEach(img => {
+      const src = img.getAttribute('src') || '';
+      if (src.includes(BAD_NEEDLE)) {
+        const idx = src.indexOf('assets/');
+        const tail = idx > -1 ? src.substring(idx).replace(/^assets\//,'') : '';
+        if (tail) img.src = ASSETS + tail;
+      }
+    });
+  }
+
+  // fallback por error de carga
+  window.addEventListener('error', function(ev){
+    const t = ev && ev.target;
+    if (t && t.tagName === 'IMG') {
+      const src = t.getAttribute('src') || '';
+      if (src.includes(BAD_NEEDLE)) {
+        const idx = src.indexOf('assets/');
+        const tail = idx > -1 ? src.substring(idx).replace(/^assets\//,'') : '';
+        if (tail) t.src = ASSETS + tail;
+      }
+    }
+  }, true);
+
+  // Ocultar “Solicitar funciones” y “Obtener ayuda” en el lateral del SPA
+  function hideLeftNavItems() {
+    const labels = ['Solicitar funciones','Obtener ayuda'];
+    const root = document.querySelector('[class*="sidebar"], nav, .kc-sidebar, .kc_left_sidebar') || document;
+    root.querySelectorAll('a, li, div, span').forEach(node => {
+      const t = (node.textContent || '').trim();
+      if (labels.includes(t)) {
+        const item = node.closest('li, a, div') || node;
+        if (item && item.style) item.style.display = 'none';
+      }
+    });
+  }
+
+  const init = once(function(){
+    // No bloquear el SPA; ejecutar cuando ya montó algo de UI
+    requestAnimationFrame(() => {
+      fixBrokenImgSrc();
+      hideLeftNavItems();
+      // Mantener el fix en cambios de ruta/vista
+      const mo = new MutationObserver(() => {
+        fixBrokenImgSrc();
+        hideLeftNavItems();
+      });
+      mo.observe(document.documentElement, { childList: true, subtree: true });
+    });
+  });
+
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    init();
+  } else {
+    document.addEventListener('DOMContentLoaded', init);
+  }
+  setTimeout(init, 2500); // salvaguarda si el SPA tarda
+})();
+
+/* Resumen de consulta: botón y modal */
+(function(){
+  const once = (fn)=>{let d=false;return function(){if(!d){d=true;fn.apply(this,arguments);}}};
+
+  function openSummary(encounterId){
+    // Usa la ruta ya registrada en KCRoutes: patient_encounter_summary
+    // El plugin resuelve las rutas vía admin-ajax. Mantener el patrón de otras vistas.
+    const url = ajaxData.ajaxurl + '?action=kivi_route&route=patient_encounter_summary&id=' + encodeURIComponent(encounterId) + '&TB_iframe=true&width=980&height=640';
+    if (window.tb_show) {
+      tb_show('Resumen de consulta', url);
+    } else {
+      window.open(url, '_blank');
+    }
+  }
+
+  function injectButtons(){
+    // Lista de encuentros: buscar la columna de acciones y añadir botón "Resumen"
+    document.querySelectorAll('[data-encounter-id]').forEach(function(row){
+      // evitar duplicados
+      if (row.querySelector('.kc-btn-summary')) return;
+      const id = row.getAttribute('data-encounter-id');
+      const actions = row.querySelector('.actions, [data-col="actions"], td:last-child');
+      if (!actions) return;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'button button-small kc-btn-summary';
+      btn.textContent = (window.__kivicarelang && __kivicarelang.common && __kivicarelang.common.summary) || 'Resumen';
+      btn.addEventListener('click', function(){ openSummary(id); });
+      actions.appendChild(btn);
+    });
+
+    // Detalle del encuentro: si hay un contenedor con el ID del encuentro, añade botón flotante
+    const detail = document.querySelector('[data-encounter-detail-id]');
+    if (detail && !document.querySelector('.kc-fab-summary')) {
+      const id = detail.getAttribute('data-encounter-detail-id');
+      const fab = document.createElement('button');
+      fab.type = 'button';
+      fab.className = 'button button-primary kc-fab-summary';
+      fab.style.position='fixed'; fab.style.right='16px'; fab.style.bottom='16px'; fab.style.zIndex='9999';
+      fab.textContent = 'Resumen';
+      fab.addEventListener('click', function(){ openSummary(id); });
+      document.body.appendChild(fab);
+    }
+  }
+
+  const init = once(function(){
+    injectButtons();
+    // Mantener al cambiar de ruta en el SPA
+    const mo = new MutationObserver(injectButtons);
+    mo.observe(document.documentElement, {childList:true,subtree:true});
+  });
+
+  if (document.readyState==='loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
