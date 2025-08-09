@@ -385,51 +385,66 @@ if (!window.__kcResumenInit) {
            /patient-encounter/.test(String(location.hash || ''));
   }
 
+  function waitUntil(check, onReady, tries = 60, delay = 300) {
+    if (check()) return onReady();
+    const t = setInterval(() => {
+      if (check()) { clearInterval(t); onReady(); }
+      if (--tries <= 0) clearInterval(t);
+    }, delay);
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
-    if (!isEncounterScreen()) return;
-    function attachEncounterId() {
-      var id = null;
-      if (window.KCApp) {
-        if (
-          window.KCApp.$store &&
-          window.KCApp.$store.state &&
-          window.KCApp.$store.state.encounter &&
-          window.KCApp.$store.state.encounter.id
-        ) {
-          id = window.KCApp.$store.state.encounter.id;
-        } else if (
-          window.KCApp.$route &&
-          window.KCApp.$route.params &&
-          window.KCApp.$route.params.id
-        ) {
-          id = window.KCApp.$route.params.id;
+    // No ejecutar nada fuera del dashboard SPA
+    if (!/page=dashboard/.test(location.search)) return;
+
+    waitUntil(
+      () => (window.KCApp && (window.KCApp.$store || window.KCApp.$route)) || isEncounterScreen(),
+      function initResumen() {
+        function attachEncounterId() {
+          var id = null;
+          if (window.KCApp) {
+            if (
+              window.KCApp.$store &&
+              window.KCApp.$store.state &&
+              window.KCApp.$store.state.encounter &&
+              window.KCApp.$store.state.encounter.id
+            ) {
+              id = window.KCApp.$store.state.encounter.id;
+            } else if (
+              window.KCApp.$route &&
+              window.KCApp.$route.params &&
+              window.KCApp.$route.params.id
+            ) {
+              id = window.KCApp.$route.params.id;
+            }
+          }
+
+          if (!id) id = idFromHash();
+
+          if (id) {
+            window.kcEncounterId = id;
+            var btn = document.getElementById('kc-encounter-print');
+            if (btn) {
+              btn.setAttribute('data-encounter-id', id);
+              btn.classList.add('resumen-btn');
+            }
+            console.log('[Resumen] kcEncounterId set', id);
+            return true;
+          }
+          return false;
+        }
+
+        if (!attachEncounterId()) {
+          var tries = 0;
+          var timer = setInterval(function () {
+            tries++;
+            if (attachEncounterId() || tries > 20) {
+              clearInterval(timer);
+            }
+          }, 500);
         }
       }
-
-      if (!id) id = idFromHash();
-
-      if (id) {
-        window.kcEncounterId = id;
-        var btn = document.getElementById('kc-encounter-print');
-        if (btn) {
-          btn.setAttribute('data-encounter-id', id);
-          btn.classList.add('resumen-btn');
-        }
-        console.log('[Resumen] kcEncounterId set', id);
-        return true;
-      }
-      return false;
-    }
-
-    if (!attachEncounterId()) {
-      var tries = 0;
-      var timer = setInterval(function () {
-        tries++;
-        if (attachEncounterId() || tries > 20) {
-          clearInterval(timer);
-        }
-      }, 500);
-    }
+    );
   });
 
   document.addEventListener('click', function(e){
