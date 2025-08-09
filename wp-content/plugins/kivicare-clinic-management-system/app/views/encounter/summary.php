@@ -19,7 +19,6 @@
   .table th,.table td{border-bottom:1px solid var(--bd);padding:8px 12px;text-align:left;vertical-align:top}
   .right{text-align:right}
   .chip{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--chip)}
-  .fab{position:fixed;right:16px;bottom:16px;z-index:9999;padding:10px 14px;border-radius:10px;border:1px solid var(--bd);background:#111827;color:#fff;cursor:pointer}
   @media print {.no-print{display:none!important} body{background:#fff}}
 </style>
 </head>
@@ -118,39 +117,42 @@
 (function(){
   const ajax = <?php echo json_encode($data['ajax_url']); ?>;
   const id   = <?php echo (int)$data['encounter_id']; ?>;
-  const $ = (s)=>document.querySelector(s);
-  const fmt = (n)=>Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const $    = (s)=>document.querySelector(s);
+  const fmt  = (n)=>Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
   $('#printDate').textContent = new Date().toLocaleString();
 
-  // Usamos la ruta existente para detalles del encuentro (no modificamos backends).
-  const url = ajax + '?action=kivi_route&route=patient_encounter_details&id=' + encodeURIComponent(id);
+  // Usar EXACTAMENTE el router del core (action=ajax_get).
+  // La ruta patient_encounter_details tiene nonce deshabilitado (ver KCRoutes).
+  const url = ajax
+    + '?action=ajax_get'
+    + '&route_name=patient_encounter_details'
+    + '&encounter_id=' + encodeURIComponent(id)
+    + '&type=json';
 
-  fetch(url,{credentials:'same-origin'})
-    .then(r=>r.json())
-    .then(j=>{
-      // Ajusta los paths con base en la respuesta real. Dejamos mapeo defensivo.
+  fetch(url, { credentials: 'same-origin' })
+    .then(r => r.json())
+    .then(j => {
       const d = j.data || j || {};
       const enc = d.encounter || d || {};
       const pat = d.patient || enc.patient || {};
       const doc = d.doctor || enc.doctor || {};
       const clinic = d.clinic || enc.clinic || {};
 
-      // Cabeceras
-      $('#e_id').textContent = enc.id || id;
-      $('#e_date').textContent = enc.date || enc.encounter_date || '';
-      $('#e_status').textContent = enc.status || enc.encounter_status || '';
+      $('#e_id').textContent    = enc.id || id;
+      $('#e_date').textContent  = enc.date || enc.encounter_date || '';
+      $('#e_status').textContent= enc.status || enc.encounter_status || '';
 
-      $('#p_name').textContent = pat.name || pat.full_name || '';
+      $('#p_name').textContent  = pat.name || pat.full_name || '';
       $('#p_email').textContent = pat.email || '';
       $('#p_phone').textContent = pat.phone_no || pat.phone || '';
 
-      $('#d_name').textContent = doc.name || '';
-      $('#d_spec').textContent = doc.speciality || doc.specialty || '';
-      $('#c_name').textContent = clinic.name || '';
+      $('#d_name').textContent  = doc.name || '';
+      $('#d_spec').textContent  = doc.speciality || doc.specialty || '';
+      $('#c_name').textContent  = clinic.name || '';
 
       // Vitals
       const vt = d.vitals || enc.vitals || {};
-      const vtBody = $('#vitals tbody'); vtBody.innerHTML = '';
+      const vtBody = document.querySelector('#vitals tbody'); vtBody.innerHTML = '';
       const entries = Object.entries(vt);
       if (entries.length){
         entries.forEach(([k,v])=>{
@@ -165,12 +167,12 @@
       // Diagnóstico / Notas
       const dx = d.diagnosis || enc.diagnosis || '';
       const nt = d.notes || enc.notes || '';
-      if (dx) { $('#diagnosis').classList.remove('muted'); $('#diagnosis').textContent = dx; }
-      if (nt) { $('#notes').classList.remove('muted'); $('#notes').textContent = nt; }
+      if (dx) { const el = $('#diagnosis'); el.classList.remove('muted'); el.textContent = dx; }
+      if (nt) { const el = $('#notes'); el.classList.remove('muted'); el.textContent = nt; }
 
       // Prescripción
       const rx = d.prescription || enc.prescription || d.prescriptions || [];
-      const rxBody = $('#rx tbody'); rxBody.innerHTML = '';
+      const rxBody = document.querySelector('#rx tbody'); rxBody.innerHTML = '';
       if (Array.isArray(rx) && rx.length){
         rx.forEach(row=>{
           const tr = document.createElement('tr');
@@ -188,7 +190,7 @@
 
       // Servicios
       const sv = d.services || enc.services || [];
-      const svBody = $('#svcs tbody'); svBody.innerHTML = '';
+      const svBody = document.querySelector('#svcs tbody'); svBody.innerHTML = '';
       let total = 0;
       if (Array.isArray(sv) && sv.length){
         sv.forEach(s=>{
@@ -201,9 +203,9 @@
       } else {
         svBody.innerHTML = '<tr><td class="muted" colspan="2"><?php echo esc_html__('Sin servicios','kc-lang'); ?></td></tr>';
       }
-      $('#svcs_total').textContent = fmt(total);
+      document.querySelector('#svcs_total').textContent = fmt(total);
     })
-    .catch(e=>{
+    .catch(e => {
       console.error(e);
       alert('No se pudo cargar el resumen.');
     });
