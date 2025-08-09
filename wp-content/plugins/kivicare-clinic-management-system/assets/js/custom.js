@@ -307,17 +307,6 @@ function kivicareCustomImageUploader(formTranslation, type = '', multiple = fals
 
     return  wp_media_instance;
 }
-
-
-function kc_ajax_get(action, id) {
-  return jQuery.get(
-    ajaxData.ajaxurl,
-    { action: action, id: id },
-    function (response) {
-      console.log(response);
-    }
-  );
-}
 /* kc_dashboard_extras: parche no intrusivo para SPA (imgs rotas + ocultar 2 ítems) */
 (function () {
   const once = (fn) => { let done=false; return function(){ if(!done){ done=true; try{ fn.apply(this, arguments);}catch(e){} } }; };
