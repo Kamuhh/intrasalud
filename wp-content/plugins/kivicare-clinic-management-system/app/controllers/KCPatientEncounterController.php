@@ -317,18 +317,16 @@ class KCPatientEncounterController extends KCBase
 			'data' => $encounter_id
 		]);
 
-	}
-
-        public function edit()
+}
+		public function edit()
 	{
-
-                $is_permission = false;
+				$is_permission = false;
 
         if (kcCheckPermission('patient_encounter_edit')) {
 			$is_permission = true;
 		}
 
-        if (!$is_permission) {
+       if (!$is_permission) {
 			wp_send_json(kcUnauthorizeAccessResponse(403));
 		}
 
@@ -349,7 +347,9 @@ class KCPatientEncounterController extends KCBase
 			$clinics_table = $this->db->prefix . 'kc_clinics';
 			$users_table = $this->db->base_prefix . 'users';
 
-            $query = "
+
+			
+			$query = "
 			SELECT {$patient_encounter_table}.*,
 			   doctors.display_name  AS doctor_name,
 			   patient.display_name  AS patient_name,
@@ -386,9 +386,10 @@ class KCPatientEncounterController extends KCBase
 					'added_by' => $encounter->added_by,
 				];
 
-        $temp = apply_filters('kivicare_update_encounter_edit_fields', $temp, $encounter);
 
-            $encounter->custom_forms = array_merge(
+		$temp = apply_filters('kivicare_update_encounter_edit_fields', $temp, $encounter);
+
+			$encounter->custom_forms = array_merge(
 					apply_filters('kivicare_custom_form_list', [], ['type' => 'appointment_module']),
 					apply_filters('kivicare_custom_form_list', [], ['type' => 'patient_encounter_module'])
 				);
@@ -401,35 +402,33 @@ class KCPatientEncounterController extends KCBase
 				wp_send_json(kcThrowExceptionResponse(esc_html__('Data not found', 'kc-lang'), 400));
 			}
 
-           } catch (Exception $e) {
+			} catch (Exception $e) {
 
-            $code = $e->getCode();
+			$code = $e->getCode();
 			$message = $e->getMessage();
 
-    header("Status: $code $message");
+	header("Status: $code $message");
 
-       wp_send_json([
+		wp_send_json([
 				'status' => false,
 				'message' => $e->getMessage()
 			]);
 		}
 	}
 
-
-        public function delete()
+		public function delete()
 	{
 
-            $is_permission = false;
-
-           if (kcCheckPermission('patient_encounter_delete')) {
+			$is_permission = false;
+			if (kcCheckPermission('patient_encounter_delete')) {
 			$is_permission = true;
 		}
-
-                if (!$is_permission) {
+				if (!$is_permission) {
 			wp_send_json(kcUnauthorizeAccessResponse(403));
 		}
+			}
 
-            $request_data = $this->request->getInputs();
+          $request_data = $this->request->getInputs();
 
 		try {
 
@@ -488,7 +487,7 @@ class KCPatientEncounterController extends KCBase
 
            $encounter = $this->getEncounterData($id);
 
-           $encounter->encounter_date = kcGetFormatedDate($encounter->encounter_date);
+			$encounter->encounter_date = kcGetFormatedDate($encounter->encounter_date);
 
 			if ($encounter) {
 				wp_send_json([
@@ -499,17 +498,18 @@ class KCPatientEncounterController extends KCBase
 					'hideInPatient' => get_option(KIVI_CARE_PREFIX . 'hide_clinical_detail_in_patient', false)
 				]);
 
-        } else {
+            } else {
 				wp_send_json(kcThrowExceptionResponse(esc_html__('Encounter not found', 'kc-lang'), 400));
 			}
+           
+		} catch (Exception $e) {
 
-            } catch (Exception $e) {
             $code = $e->getCode();
 			$message = $e->getMessage();
 
-            header("Status: $code $message");
+    header("Status: $code $message");
 
-    wp_send_json([
+       wp_send_json([
 				'status' => false,
 				'message' => $e->getMessage()
 			]);
@@ -523,7 +523,7 @@ class KCPatientEncounterController extends KCBase
 			wp_send_json(kcUnauthorizeAccessResponse(403));
 		}
 
-        $request_data = $this->request->getInputs();
+		$request_data = $this->request->getInputs();
 		if (!isset($request_data['id'])) {
 			wp_send_json([
 				'status' => false,
@@ -552,8 +552,7 @@ class KCPatientEncounterController extends KCBase
 			kvSaveCustomFields('patient_encounter_module', $request_data['id'], $request_data['custom_fields']);
 			do_action('kc_encounter_update', $request_data['id']);
 		}
-
-            wp_send_json([
+			wp_send_json([
 			'status' => true,
 			'message' => esc_html__('Encounter data has been saved', 'kc-lang'),
 		]);
@@ -571,9 +570,10 @@ class KCPatientEncounterController extends KCBase
 
 		if (kcAppointmentMultiFileUploadEnable()) {
 			$appointment_report_query = ", {$appointment_table}.appointment_report";
-			$appointment_report_join_query = "LEFT JOIN {$appointment_table}
+			$appointment_report_join_query = "LEFT JOIN {$appointment_table} 
 			ON {$appointment_table}.id = {$patient_encounter_table}.appointment_id";
-        }
+       
+		}
 
         $query = "
 			SELECT {$patient_encounter_table}.*,
@@ -593,21 +593,21 @@ class KCPatientEncounterController extends KCBase
 			   {$appointment_report_join_query}
             WHERE {$patient_encounter_table}.id = {$id}";
 
-        $encounter = $this->db->get_row($query);
+		$encounter = $this->db->get_row($query);
 
 
-
+		
 		if (!empty($encounter)) {
 			$patient_profile_image = get_user_meta($encounter->patient_id, 'patient_profile_image', true);
 			$patient = get_user_meta($encounter->patient_id, 'basic_data', true);
 			$patient = json_decode($patient);
 			$get_patient_data = get_option(KIVI_CARE_PREFIX . 'patient_id_setting', true);
 
-            if (gettype($get_patient_data) != 'boolean') {
+			if (gettype($get_patient_data) != 'boolean') {
 				$encounter->is_patient_unique_id_enable = in_array((string) $get_patient_data['enable'], ['true', '1']) ? true : false;
 			}
 
-    $encounter->clinic_name = decodeSpecificSymbols($encounter->clinic_name);
+	$encounter->clinic_name = decodeSpecificSymbols($encounter->clinic_name);
 			$encounter->patient_unique_id = get_user_meta((int) $encounter->patient_id, 'patient_unique_id', true) ?? '-';
 			$encounter->patient_address = (!empty($patient->address) ? $patient->address : '');
 			$encounter->patient_profile_image = !empty($patient_profile_image) ? wp_get_attachment_url($patient_profile_image) : '';
@@ -866,6 +866,86 @@ class KCPatientEncounterController extends KCBase
 			]);
 		}
 	}
+
+	public function encounterExtraClinicalDetailFields()
+	{
+		$request_data = $this->request->getInputs();
+		$encounter_id = (int) $request_data['encounter_id'];
+		$encounter_status = $request_data['status'];
+		wp_send_json(
+			[
+				'status' => true,
+				'data' => [
+					[
+						"type" => 'disease',
+						"title" => 'disease',
+						"encounter_id" => $encounter_id,
+						"status" => $encounter_status,
+						"ref" => 'medical_history_disease'
+					],
+					[
+						"type" => 'report',
+						"title" => 'report',
+						"encounter_id" => $encounter_id,
+						"status" => $encounter_status,
+						"ref" => 'medical_history_report'
+					],
+
+				]
+			]
+		);
+	}
+
+
+	public function encounterPermissionUserWise($encounter_id)
+	{
+		$encounter_detail = (new KCPatientEncounter())->get_by(['id' => (int) $encounter_id], '=', true);
+		$permission = false;
+
+		$login_user_role = $this->getLoginUserRole();
+		switch ($login_user_role) {
+			case $this->getReceptionistRole():
+				$clinic_id = kcGetClinicIdOfReceptionist();
+				if (!empty($encounter_detail->clinic_id) && (int) $encounter_detail->clinic_id === $clinic_id) {
+					$permission = true;
+				}
+				break;
+			case $this->getClinicAdminRole():
+				$clinic_id = kcGetClinicIdOfClinicAdmin();
+				if (!empty($encounter_detail->clinic_id) && (int) $encounter_detail->clinic_id === $clinic_id) {
+					$permission = true;
+				}
+				break;
+			case 'administrator':
+				$permission = true;
+				break;
+			case $this->getDoctorRole():
+				if (!empty($encounter_detail->doctor_id) && (int) $encounter_detail->doctor_id === get_current_user_id()) {
+					$permission = true;
+				}
+				break;
+			case $this->getPatientRole():
+				if (!empty($encounter_detail->patient_id) && (int) $encounter_detail->patient_id === get_current_user_id()) {
+					$permission = true;
+				}
+				break;
+		}
+		return $permission;
+	}
+
+	public function getEncounterPrint()
+	{
+		$request_data = $this->request->getInputs();
+		if (!((new KCPatientEncounter())->encounterPermissionUserWise($request_data['encounter_id']))) {
+			wp_send_json(kcUnauthorizeAccessResponse(403));
+		}
+		$response = apply_filters('kcpro_get_encounter_print', [
+			'encounter_id' => (int) $request_data['encounter_id'],
+			'clinic_default_logo' => KIVI_CARE_DIR_URI . 'assets/images/kc-demo-img.png',
+		]);
+		wp_send_json($response);
+	}
+}
 
 	public function encounterExtraClinicalDetailFields()
 	{
