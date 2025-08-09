@@ -3,7 +3,12 @@
   const once = (fn)=>{let d=false;return function(){if(!d){d=true;fn();}}};
 
   function openSummary(encounterId){
-    const url = ajaxData.ajaxurl + '?action=kivi_route&route=patient_encounter_summary&id=' + encodeURIComponent(encounterId) + '&TB_iframe=true&width=980&height=640';
+    const url = ajaxData.ajaxurl
+      + '?action=ajax_get'
+      + '&route_name=patient_encounter_summary'
+      + '&encounter_id=' + encodeURIComponent(encounterId)
+      + '&type=html'
+      + '&TB_iframe=true&width=980&height=640';
     if (window.tb_show) tb_show('Resumen de consulta', url);
     else window.open(url,'_blank');
   }
