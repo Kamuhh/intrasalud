@@ -307,16 +307,6 @@ function kivicareCustomImageUploader(formTranslation, type = '', multiple = fals
 
     return  wp_media_instance;
 }
-/* kc_dashboard_extras: parche no intrusivo para SPA (imgs rotas + ocultar 2 ítems) */
-(function () {
-  const once = (fn) => { let done=false; return function(){ if(!done){ done=true; try{ fn.apply(this, arguments);}catch(e){} } }; };
-  const nbase = (u)=>{ if(!u) return ''; return u.endsWith('/')?u:(u+'/'); };
-
-  // Bases seguras: vienen de PHP (ver sección C). Fallbacks defensivos.
-  const ADMIN  = nbase(window.kc_admin_url || (window.ajaxurl ? window.ajaxurl.replace('admin-ajax.php','') : '/wp-admin/'));
-  const ASSETS = nbase(window.kc_assets_url || (window.kc_plugin_url ? (window.kc_plugin_url + 'assets/') : ''));
-  const BAD_NEEDLE = '/wp-admin/undefinedassets/';
-
   // Reparar <img> que el bundle armó con base 'undefined'
   function fixBrokenImgSrc() {
     document.querySelectorAll('img[src]').forEach(img => {
