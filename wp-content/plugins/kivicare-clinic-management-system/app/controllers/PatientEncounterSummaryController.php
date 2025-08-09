@@ -1,13 +1,13 @@
 <?php
-namespace App\Controllers;
+namespace App\controllers;
 
 defined('ABSPATH') || exit;
 
 class PatientEncounterSummaryController
 {
     /**
-     * Renderiza un shell HTML ligero. Los datos se cargan por AJAX
-     * desde la ruta existente 'patient_encounter_details' para no repetir lógica.
+     * Entrega HTML ligero para Thickbox. Los datos se obtienen por AJAX
+     * usando el router del core (action=ajax_get).
      */
     public function show()
     {
@@ -16,15 +16,16 @@ class PatientEncounterSummaryController
             wp_die(__('Invalid encounter id','kc-lang'));
         }
 
-        // Variables mínimas para la vista
+        // Cabeceras mínimas
+        nocache_headers();
+        header('Content-Type: text/html; charset=' . get_bloginfo('charset'));
+
         $data = [
             'encounter_id' => $encounterId,
+            // admin-ajax del dashboard
             'ajax_url'     => admin_url('admin-ajax.php'),
-            'assets_url'   => trailingslashit(plugin_dir_url(dirname(__DIR__))) . 'assets/',
         ];
 
-        // Carga vista
-        // Nota: usamos una vista propia que se renderiza sin depender del SPA.
         include dirname(__DIR__) . '/views/encounter/summary.php';
         exit;
     }
