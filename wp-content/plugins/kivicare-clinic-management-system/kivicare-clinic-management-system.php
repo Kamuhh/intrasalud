@@ -65,7 +65,6 @@ register_deactivation_hook( __FILE__, [KCDeactivate::class, 'deActivate'] );
 ( new KCDeactivate() );
 
 do_action('kivicare_activate_init');
-do_action('kivicare_activate_init');
 
 add_action('admin_enqueue_scripts', function () {
     wp_enqueue_script('thickbox');
@@ -80,5 +79,13 @@ add_action('admin_enqueue_scripts', function () {
         array('jquery', 'thickbox'),
         '3.6.11.2',
         true
+    );
+    wp_localize_script(
+        'kivicare-custom',
+        'request_data',
+        array(
+            'ajaxurl'   => admin_url('admin-ajax.php'),
+            'get_nonce' => wp_create_nonce('ajax_get'),
+        )
     );
 }, 20);
