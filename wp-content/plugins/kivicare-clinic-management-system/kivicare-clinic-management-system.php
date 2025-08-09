@@ -65,20 +65,17 @@ register_deactivation_hook( __FILE__, [KCDeactivate::class, 'deActivate'] );
 ( new KCDeactivate() );
 
 add_action('admin_enqueue_scripts', function () {
-    // Cargar solo en la SPA de KiviCare
-    $is_kivicare_dashboard = isset($_GET['page']) && $_GET['page'] === 'dashboard';
-    if (!$is_kivicare_dashboard) {
+    // Solo en la SPA de KiviCare
+    if (!isset($_GET['page']) || $_GET['page'] !== 'dashboard') {
         return;
     }
 
-    // NO desregistrar kc_custom. Asegurarnos que esté y luego cargar lo nuestro
     wp_enqueue_script('thickbox');
     wp_enqueue_style('thickbox');
 
-    $deps = array('jquery', 'thickbox');
-    // Si kc_custom está registrado, hacerlo dependencia explícita para garantizar orden
+    $deps = ['jquery', 'thickbox'];
     if (wp_script_is('kc_custom', 'registered') || wp_script_is('kc_custom', 'enqueued')) {
-        $deps[] = 'kc_custom';
+        $deps[] = 'kc_custom'; // asegurar orden
     }
 
     $file    = KIVI_CARE_DIR . 'assets/js/custom.js';
@@ -95,9 +92,9 @@ add_action('admin_enqueue_scripts', function () {
     wp_localize_script(
         'kivicare-custom',
         'request_data',
-        array(
+        [
             'ajaxurl'   => admin_url('admin-ajax.php'),
             'get_nonce' => wp_create_nonce('ajax_get'),
-        )
+        ]
     );
 }, 99); // prioridad ALTA para ir después del core
