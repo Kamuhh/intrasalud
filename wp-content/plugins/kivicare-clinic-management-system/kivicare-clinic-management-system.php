@@ -64,71 +64,18 @@ register_deactivation_hook( __FILE__, [KCDeactivate::class, 'deActivate'] );
 
 ( new KCDeactivate() );
 
-/**
- * Inyecta variables globales para el SPA lo más temprano posible.
- * No depende de handles registrados.
- */
-add_action('admin_head', function () {
-    if (!defined('KIVICARE_PLUGIN_URL')) {
-        define('KIVICARE_PLUGIN_URL', plugin_dir_url(__FILE__));
-    }
-    if (!defined('KIVICARE_ASSETS_URL')) {
-        define('KIVICARE_ASSETS_URL', KIVICARE_PLUGIN_URL . 'assets/');
-    }
-    $admin_base = admin_url(); // termina en /wp-admin/
-
-    ?>
-    <script>
-      // Bases que usará el bundle y nuestro parche JS
-      window.kc_admin_url  = <?php echo wp_json_encode($admin_base); ?>;
-      window.kc_plugin_url = <?php echo wp_json_encode(KIVICARE_PLUGIN_URL); ?>;
-      window.kc_assets_url = <?php echo wp_json_encode(KIVICARE_ASSETS_URL); ?>;
-      window.kc_ajax_url   = <?php echo wp_json_encode(admin_url('admin-ajax.php')); ?>;
-    </script>
-    <?php
-}, 1); // prioridad baja = muy temprano
+do_action('kivicare_activate_init');
 
 add_action('admin_enqueue_scripts', function () {
-    // Solo en la SPA de KiviCare
-    if (!isset($_GET['page']) || $_GET['page'] !== 'dashboard') {
-        return;
+    // Depende de kc_custom (bundle del SPA) y Thickbox
+    $path = plugin_dir_path(__FILE__) . 'assets/js/summary.js';
+    if (file_exists($path)) {
+        wp_enqueue_script(
+            'kc_encounter_summary_btn',
+            plugin_dir_url(__FILE__) . 'assets/js/summary.js',
+            ['kc_custom','jquery','thickbox'],
+            filemtime($path),
+            true
+        );
     }
-
-    wp_enqueue_script('thickbox');
-    wp_enqueue_style('thickbox');
-
-    $deps = ['jquery', 'thickbox'];
-    if (wp_script_is('kc_custom', 'registered') || wp_script_is('kc_custom', 'enqueued')) {
-        $deps[] = 'kc_custom'; // asegurar orden
-    }
-
-    $file    = KIVI_CARE_DIR . 'assets/js/custom.js';
-    $version = file_exists($file) ? filemtime($file) : '3.6.11.4';
-
-    wp_enqueue_script(
-        'kivicare-custom',
-        KIVI_CARE_DIR_URI . 'assets/js/custom.js',
-        $deps,
-        $version,
-        true
-    );
-
-    wp_localize_script(
-        'kivicare-custom',
-        'request_data',
-        [
-            'ajaxurl'   => admin_url('admin-ajax.php'),
-            'get_nonce' => wp_create_nonce('ajax_get'),
-        ]
-    );
-}, 99); // prioridad ALTA para ir después del core
-
-/**
- * Opcional: quitar páginas de soporte/solicitud si existieran en el menú WP clásico.
- */
-add_action('admin_menu', function () {
-    @remove_menu_page('kc-support');
-    @remove_menu_page('kc-request-feature');
-    @remove_submenu_page('kivicare', 'kc-support');
-    @remove_submenu_page('kivicare', 'kc-request-feature');
-}, 999);
+}, 50);
