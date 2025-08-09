@@ -443,12 +443,12 @@ if (!window.__kcResumenInit) {
       return;
     }
 
-    jQuery.post(request_data.ajaxurl, {
+    jQuery.get(request_data.ajaxurl, {
       action: 'ajax_get',
       route_name: 'patient_encounter_summary',
       encounter_id: encounterId,
       type: 'html',
-      _ajax_nonce: request_data.get_nonce || request_data._ajax_nonce
+      _ajax_nonce: request_data.get_nonce
     }).done(function(res){
       try { if (typeof res === 'string') res = JSON.parse(res); } catch(err){ console.error('[Resumen] Invalid response', res); return; }
       if (!res || !res.status) { console.error('[Resumen] Error', res); return; }
@@ -459,26 +459,34 @@ if (!window.__kcResumenInit) {
       openResumenModal();
 
       jQuery('#encounter-summary-email').off('click').on('click', function () {
-        jQuery.post(request_data.ajaxurl, {
+        jQuery.get(request_data.ajaxurl, {
           action: 'ajax_get',
           route_name: 'patient_encounter_summary',
           encounter_id: encounterId,
           type: 'sendEmail',
-          _ajax_nonce: request_data.get_nonce || request_data._ajax_nonce
+          _ajax_nonce: request_data.get_nonce
         })
-        .done(function (r) { alert(r.message || 'Correo enviado'); })
+        .done(function (r) {
+          try { if (typeof r === 'string') r = JSON.parse(r); } catch(err){ console.error('[Resumen] Invalid response', r); return; }
+          if (!r || !r.status) { console.error('[Resumen] Error', r); return; }
+          alert(r.message || 'Correo enviado');
+        })
         .fail(function (jq) { console.error('[Resumen] AJAX error', jq.status, jq.responseText); });
       });
 
       jQuery('#encounter-summary-pdf').off('click').on('click', function () {
-        jQuery.post(request_data.ajaxurl, {
+        jQuery.get(request_data.ajaxurl, {
           action: 'ajax_get',
           route_name: 'patient_encounter_summary',
           encounter_id: encounterId,
           type: 'pdf',
-          _ajax_nonce: request_data.get_nonce || request_data._ajax_nonce
+          _ajax_nonce: request_data.get_nonce
         })
-        .done(function (r) { if (r.file_url) window.open(r.file_url, '_blank'); })
+        .done(function (r) {
+          try { if (typeof r === 'string') r = JSON.parse(r); } catch(err){ console.error('[Resumen] Invalid response', r); return; }
+          if (!r || !r.status) { console.error('[Resumen] Error', r); return; }
+          if (r.file_url) window.open(r.file_url, '_blank');
+        })
         .fail(function (jq) { console.error('[Resumen] AJAX error', jq.status, jq.responseText); });
       });
     }).fail(function(jq){
