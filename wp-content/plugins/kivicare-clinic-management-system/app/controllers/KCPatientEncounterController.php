@@ -980,159 +980,44 @@ class KCPatientEncounterController extends KCBase
 
     public function printEncounterSummary()
     {
-        global $wpdb;
-
-        $request_data = $this->request->getInputs();
-        $encounter_id = $encounter_id = isset($request_data['encounter_id']) ? (int)$request_data['encounter_id'] : 0;
-        $output_type = isset($request_data['type']) ? sanitize_text_field($request_data['type']) : 'html';
-
-        // Verificar permisos del usuario para este encuentro
-        if (!((new KCPatientEncounter())->encounterPermissionUserWise($encounter_id))) {
-            wp_send_json(kcUnauthorizeAccessResponse(403));
-        }
-
-        // Obtener datos del encuentro, doctor, paciente y clínica
-        $table_encounters = $wpdb->prefix . 'kc_patient_encounters';
-        $table_clinics = $wpdb->prefix . 'kc_clinics';
-        $table_users = $wpdb->base_prefix . 'users';
-
-        $query = $wpdb->prepare(
-            "SELECT e.*, d.display_name AS doctor_name, d.user_email AS doctor_email,
-                p.display_name AS patient_name, p.user_email AS patient_email,
-                CONCAT(c.address, ', ', c.city, ', ', c.postal_code, ', ', c.country) AS clinic_address,
-                c.*
-         FROM {$table_encounters} e
-         LEFT JOIN {$table_users} d ON e.doctor_id  = d.id
-         LEFT JOIN {$table_users} p ON e.patient_id = p.id
-         LEFT JOIN {$table_clinics} c ON e.clinic_id = c.id
-         WHERE e.id = %d",
-            $encounter_id
-        );
-        $encounter = $wpdb->get_row($query);
-
-        if (!$encounter) {
-            wp_send_json([
-                'status' => false,
-                'message' => esc_html__('No se encontró el encuentro', 'kc-lang'),
-            ]);
-        }
-
-        // Calcular género y edad del paciente a partir de sus datos básicos
-        $patient_basic_data = json_decode(get_user_meta((int) $encounter->patient_id, 'basic_data', true));
-        $encounter->patient_gender = (!empty($patient_basic_data->gender) && $patient_basic_data->gender === 'female') ? 'F' : 'M';
-        $encounter->patient_age = '';
-        if (!empty($patient_basic_data->dob)) {
-            try {
-                $from = new DateTime($patient_basic_data->dob);
-                $to = new DateTime('today');
-                $years = $from->diff($to)->y;
-                $months = $from->diff($to)->m;
-                $days = $from->diff($to)->d;
-                if (empty($months) && empty($years)) {
-                    $encounter->patient_age = $days . esc_html__(' Días', 'kc-lang');
-                } elseif (empty($years)) {
-                    $encounter->patient_age = $months . esc_html__(' Meses', 'kc-lang');
-                } else {
-                    $encounter->patient_age = $years . esc_html__(' Años', 'kc-lang');
-                }
-            } catch (Exception $e) {
-                $encounter->patient_age = '';
+        try {
+            // 1) Obtener ID de encuentro
+            $encounterId = isset($_GET['id']) ? intval($_GET['id']) : 0;
+            if ($encounterId <= 0) {
+                return kcResponse('error', __('Invalid encounter id', 'kc-lang'));
             }
-        }
 
-        // Convertir diagnósticos a array (por si vienen en JSON)
-        $diagnoses = [];
-        if (!empty($encounter->diagnosis)) {
-            $decoded = json_decode($encounter->diagnosis, true);
-            if (is_array($decoded)) {
-                $diagnoses = $decoded;
-            } else {
-                $diagnoses = [$encounter->diagnosis];
-            }
-        }
+        // 2) Reusar repositorios/modelos existentes para obtener los datos del encuentro
+            $encounter    = $this->encounterRepository->getById($encounterId);
+            $patient      = $this->patientRepository->getById($encounter->patient_id);
+            $doctor       = $this->doctorRepository->getById($encounter->doctor_id);
+            $clinic       = $this->clinicRepository->getById($encounter->clinic_id);
+            $vitals       = $this->encounterRepository->getVitals($encounterId);
+            $diagnosis    = $this->encounterRepository->getDiagnosis($encounterId);
+            $notes        = $this->encounterRepository->getNotes($encounterId);
+            $prescription = $this->prescriptionRepository->getByEncounterId($encounterId);
+            $services     = $this->serviceRepository->getByEncounterId($encounterId);
 
-        // Construir el HTML del resumen
-        ob_start(); ?>
-        <div class="kc-summary-modal">
-            <h2><?php echo esc_html__('Resumen de atención', 'kc-lang'); ?></h2>
-            <!-- Detalles del paciente -->
-            <h4><?php echo esc_html__('Detalles del paciente', 'kc-lang'); ?></h4>
-            <p>
-                <?php echo esc_html($encounter->patient_name); ?>
-                (<?php echo esc_html($encounter->patient_gender); ?>) –
-                <?php echo esc_html($encounter->patient_age); ?>
-            </p>
-            <!-- Diagnósticos -->
-            <h4><?php echo esc_html__('Diagnóstico(s)', 'kc-lang'); ?></h4>
-            <ul>
-                <?php foreach ($diagnoses as $diag): ?>
-                    <li><?php echo esc_html($diag); ?></li>
-                <?php endforeach; ?>
-            </ul>
-            <!-- Ordenes Clínicas -->
-            <h4><?php echo esc_html__('Ordenes Clínicas', 'kc-lang'); ?></h4>
-            <p>
-                <?php echo !empty($encounter->observations)
-                    ? esc_html($encounter->observations)
-                    : esc_html__('No se encontraron registros', 'kc-lang'); ?>
-            </p>
-            <!-- Indicaciones -->
-            <h4><?php echo esc_html__('Indicaciones', 'kc-lang'); ?></h4>
-            <p>
-                <?php echo !empty($encounter->notes)
-                    ? esc_html($encounter->notes)
-                    : esc_html__('No se encontraron registros', 'kc-lang'); ?>
-            </p>
-        </div>
-        <?php
-        $html = ob_get_clean();
+            // 3) Datos para la vista
+            $data = [
+                'encounter'    => $encounter,
+                'patient'      => $patient,
+                'doctor'       => $doctor,
+                'clinic'       => $clinic,
+                'vitals'       => $vitals,
+                'diagnosis'    => $diagnosis,
+                'notes'        => $notes,
+                'prescription' => $prescription,
+                'services'     => $services,
+                'logo_url'     => kcGetClinicLogoUrl($clinic),
+                'print_date'   => current_time('Y-m-d H:i'),
+            ];
 
-        // Generar PDF o enviar correo si se solicita
-        if ($output_type === 'pdf' || $output_type === 'sendEmail') {
-            $dompdf = new Dompdf();
-            $dompdf->set_option('isHtml5ParserEnabled', true);
-            $dompdf->set_option('isPhpEnabled', true);
-            $dompdf->set_option('isRemoteEnabled', true);
-            $dompdf->loadHtml($html);
-            $dompdf->setPaper('A4', 'portrait');
-            $dompdf->render();
-            $pdf_output = $dompdf->output();
+            // 4) Renderizar vista propia
+            return kcView('encounter/summary', $data);
 
-            if ($output_type === 'pdf') {
-                // Guardar PDF en uploads y devolver la URL
-                $file_name = 'Encuentro_' . $encounter_id . '.pdf';
-                $upload_dir = wp_upload_dir();
-                $pdf_path = $upload_dir['path'] . '/' . $file_name;
-                file_put_contents($pdf_path, $pdf_output);
-                wp_send_json([
-                    'status' => true,
-                    'file_url' => $upload_dir['url'] . '/' . $file_name,
-                ]);
-            } else {
-                // Enviar por correo al paciente con el PDF adjunto
-                $user_email = $wpdb->get_var(
-                    'SELECT user_email FROM ' . $wpdb->base_prefix . 'users WHERE ID=' . (int) $encounter->patient_id
-                );
-                $attachment = [$pdf_output];
-                $send_status = kcSendEmail([
-                    'user_email' => $user_email,
-                    'attachment_file' => $attachment,
-                    'attachment' => true,
-                    'email_template_type' => 'patient_summary',
-                ]);
-                wp_send_json([
-                    'status' => $send_status,
-                    'message' => $send_status
-                        ? esc_html__('Correo electrónico enviado con éxito', 'kc-lang')
-                        : esc_html__('No se pudo enviar el correo electrónico', 'kc-lang'),
-                ]);
-            }
-        } else {
-            // Devolver el HTML para el modal
-            wp_send_json([
-                'status' => true,
-                'data' => $html,
-            ]);
+        } catch (\Exception $e) {
+            return kcResponse('error', $e->getMessage());
         }
     }
 
