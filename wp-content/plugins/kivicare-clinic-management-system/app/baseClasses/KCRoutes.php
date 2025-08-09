@@ -52,8 +52,8 @@ class KCRoutes
             'save_custom_patient_encounter_field' => ['method' => 'post', 'action' => 'KCPatientEncounterController@saveCustomField'],
             'patient_encounter_update_status' => ['method' => 'post', 'action' => 'KCPatientEncounterController@updateStatus'],
             'print_encounter_bill_detail' => ['method' => 'get', 'action' => 'KCPatientEncounterController@printEncounterBillDetail'],
-          //  'patient_encounter_summary' => ['method' => 'get', 'action' => 'PatientEncounterSummaryController@handle'],
-            'patient_encounter_summary' => ['method' => 'get', 'action' => 'KCPatientEncounterController@printEncounterSummary',],
+            'patient_encounter_summary' => ['method' => 'get', 'action' => 'PatientEncounterSummaryController@handle'],
+            
 
             //'send_bill_to_patient'    =>   ['method' => 'get', 'action' => 'KCPatientEncounterController@sendBillToPatient'],
             'encounter_extra_clinical_detail_fields' => ['method' => 'get', 'action' => 'KCPatientEncounterController@encounterExtraClinicalDetailFields'],
