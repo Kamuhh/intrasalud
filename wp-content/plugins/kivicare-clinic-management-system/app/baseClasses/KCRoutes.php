@@ -48,11 +48,11 @@ class KCRoutes
             'patient_encounter_save' => ['method' => 'post', 'action' => 'KCPatientEncounterController@save'],
             'patient_encounter_edit' => ['method' => 'get', 'action' => 'KCPatientEncounterController@edit'],
             'patient_encounter_delete' => ['method' => 'get', 'action' => 'KCPatientEncounterController@delete'],
-            'patient_encounter_details' => ['method' => 'get', 'action' => 'KCPatientEncounterController@details'],
+            'patient_encounter_details' => ['method' => 'get', 'action' => 'KCPatientEncounterController@details', 'nonce' => 0],
             'save_custom_patient_encounter_field' => ['method' => 'post', 'action' => 'KCPatientEncounterController@saveCustomField'],
             'patient_encounter_update_status' => ['method' => 'post', 'action' => 'KCPatientEncounterController@updateStatus'],
             'print_encounter_bill_detail' => ['method' => 'get', 'action' => 'KCPatientEncounterController@printEncounterBillDetail'],
-            'patient_encounter_summary' => ['method' => 'get', 'action' => 'PatientEncounterSummaryController@show'],
+            'patient_encounter_summary' => ['method' => 'get', 'action' => 'PatientEncounterSummaryController@show', 'nonce' => 0],
 
             //'send_bill_to_patient'    =>   ['method' => 'get', 'action' => 'KCPatientEncounterController@sendBillToPatient'],
             'encounter_extra_clinical_detail_fields' => ['method' => 'get', 'action' => 'KCPatientEncounterController@encounterExtraClinicalDetailFields'],
