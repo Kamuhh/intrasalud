@@ -64,20 +64,21 @@ register_deactivation_hook( __FILE__, [KCDeactivate::class, 'deActivate'] );
 
 ( new KCDeactivate() );
 
-do_action('kivicare_activate_init');
-
 add_action('admin_enqueue_scripts', function () {
+    // Load assets only in KiviCare dashboard
+    $is_kivicare_dashboard = isset($_GET['page']) && $_GET['page'] === 'dashboard';
+    if (!$is_kivicare_dashboard) {
+        return;
+    }
+
     wp_enqueue_script('thickbox');
     wp_enqueue_style('thickbox');
-
-    wp_dequeue_script('kc_custom');
-    wp_deregister_script('kc_custom');
 
     wp_enqueue_script(
         'kivicare-custom',
         KIVI_CARE_DIR_URI . 'assets/js/custom.js',
         array('jquery', 'thickbox'),
-        '3.6.11.2',
+        '3.6.11.3',
         true
     );
     wp_localize_script(
