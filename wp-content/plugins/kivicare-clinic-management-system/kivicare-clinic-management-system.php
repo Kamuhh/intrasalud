@@ -79,3 +79,15 @@ add_action('admin_enqueue_scripts', function () {
         );
     }
 }, 50);
+add_action('admin_enqueue_scripts', function () {
+    $p = plugin_dir_path(__FILE__) . 'assets/js/kc_patches.js';
+    if (file_exists($p)) {
+        wp_enqueue_script(
+            'kc_patches',
+            plugin_dir_url(__FILE__) . 'assets/js/kc_patches.js',
+            ['kc_custom','jquery','thickbox'],
+            filemtime($p),
+            true
+        );
+    }
+}, 50);
